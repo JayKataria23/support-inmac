@@ -3,13 +3,14 @@ import numpy as np
 import pandas as pd
 import altair as alt
 from datetime import datetime, timedelta
+from st_supabase_connection import SupabaseConnection, execute_query
 
 # Page title
-st.set_page_config(page_title='Support Ticket Workflow', page_icon='🎫')
-st.title('🎫 Support Ticket Workflow')
-st.info('To write a ticket, fill out the form below. Check status or review ticketing analytics using the tabs below.')
+st.set_page_config(page_title='Support Ticket Workflow', page_icon='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAY1BMVEX////9+PjXjI6+P0K/QkXBSErpv8D14+PJZWi6MTS7NTjFVljryMjCT1G6MjW7Njm5LTDTfoDgqaq4Jir67+/ThIbx19fz3d3doqP25+fIYGPReXvdnqDYkpP79PTluLm+QELIVu6CAAAAy0lEQVR4AX2SBQ7DQAwEHc4xlMP//2TpnNJGHbFW2pGBPsjyokxUNf3StEI+EaqBUBvrnvhAQCxkCncRsv3BplDKI4SnVrgnQmV/lAfIsrPjVlFvKLnVmgsqOw59j8q6TEppIyoHkZS2OqKy9zxIu6FU3OrHCcLZcmtZozJfW7sTKtdBxGFPRN/DHAtWuohTRs9KowkIr0FQORnBp9wYRHOrLGcCzju+iDrilKvS9nsIG7UqB0LlwsqixnCQT5zo8CL7sJRlcUd8v9YNS1IRq/svf5IAAAAASUVORK5CYII=')
+st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-logo.png?w=721&ssl=1")
+st.title( 'Support Ticket Workflow')
 
-
+conn = st.connection("supabase",type=SupabaseConnection)
 # Generate data
 ## Set seed for reproducibility
 np.random.seed(42)
@@ -77,9 +78,13 @@ recent_ticket_number = int(max(st.session_state.df.ID).split('-')[1])
 
 with tabs[0]:
   with st.form('addition'):
+    location = st.selectbox("Company - Branch*", ["TJSB bank - Yewatamal","TJSB bank - Solapur","TJSB bank - Akola",],  index=None)
     issue = st.text_area('Description of issue')
-    priority = st.selectbox('Priority', ['High', 'Medium', 'Low'])
+    priority = st.selectbox('Priority', ['High', 'Medium', 'Low'], index=2)
+    image = st.file_uploader("Add Image", accept_multiple_files=True, type=['png', 'jpg', 'webp', 'jpeg'])
+    engineer = st.selectbox("Engineer", ["Irshad Sidique", "Shafiq Khan", "Ravi Patil", "Arun Nikade"], index=None)
     submit = st.form_submit_button('Submit')
+
 
   if submit:
       today_date = datetime.now().strftime('%m-%d-%Y')
