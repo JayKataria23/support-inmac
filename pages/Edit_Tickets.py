@@ -39,7 +39,6 @@ if event.selection.rows:
                         if delImg:
                                 images.remove(i)
                                 st.rerun()
-                        st.write(images)
         st.file_uploader(label="Problem Images", accept_multiple_files=True, type=["png", "jpeg", "jpg", "webp"])
         st.toggle("Completed", value=filtered_df["completed"][0])
         st.date_input(label="Completed At Date", value=datetime.strptime(filtered_df["completed_at"][0][0:10], "%Y-%m-%d") if filtered_df["completed_at"][0] else None)
