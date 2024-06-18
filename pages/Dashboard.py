@@ -27,5 +27,5 @@ if event.selection.rows:
         st.title(filtered_df["location"][0])
 
         status_col = st.columns((2, 2))
-        st.write("==**ID**==", filtered_df["id"][0])
+        st.write("==ID==", filtered_df["id"][0])
         st.write("**Created At**", filtered_df["created_at"][0])
