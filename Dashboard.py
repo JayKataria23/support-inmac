@@ -11,127 +11,123 @@ st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-log
 st.title( 'Support Ticket Workflow')
 
 conn = st.connection("supabase",type=SupabaseConnection)
-# Generate data
-## Set seed for reproducibility
-np.random.seed(42)
 
-## Function to generate a random issue description
-def generate_issue():
-    issues = [
-        "Network connectivity issues in the office",
-        "Software application crashing on startup",
-        "Printer not responding to print commands",
-        "Email server downtime",
-        "Data backup failure",
-        "Login authentication problems",
-        "Website performance degradation",
-        "Security vulnerability identified",
-        "Hardware malfunction in the server room",
-        "Employee unable to access shared files",
-        "Database connection failure",
-        "Mobile application not syncing data",
-        "VoIP phone system issues",
-        "VPN connection problems for remote employees",
-        "System updates causing compatibility issues",
-        "File server running out of storage space",
-        "Intrusion detection system alerts",
-        "Inventory management system errors",
-        "Customer data not loading in CRM",
-        "Collaboration tool not sending notifications"
-    ]
-    return np.random.choice(issues)
+engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
+df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
+if df.count is not None:
+        df = pd.DataFrame(df.data)[["id", "created_at", "location", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
 
-## Function to generate random dates
-start_date = datetime(2023, 6, 1)
-end_date = datetime(2023, 12, 20)
-id_values = ['TICKET-{}'.format(i) for i in range(1000, 1100)]
-issue_list = [generate_issue() for _ in range(100)]
+        event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
+                on_select="rerun",
+                selection_mode="single-row",column_config={
+                        "id":"ID",
+                        "created_at":st.column_config.DatetimeColumn("Created At"),
+                        "location":"Company - Branch",
+                        "problem":"Problem Statement",
+                        "engineer":"Engineer Name",
+                        "image":st.column_config.ListColumn("Images"),
+                        "completed":st.column_config.CheckboxColumn("Completed"),
+                        "completed_at":st.column_config.DatetimeColumn("Completed At"),
+                        "call_report":st.column_config.ListColumn("Call Reports"),
+                })
 
+        if event.selection.rows:
+                selected_row = df.iloc[event.selection.rows].copy().reset_index()
+                id = selected_row["id"][0]
+                created_at = selected_row["created_at"][0]
+                location = selected_row["location"][0]
+                problem = selected_row["problem"][0]
+                engineer = selected_row["engineer"][0]
+                images = selected_row["image"][0]
+                completed = selected_row["completed"][0]
+                completed_at = selected_row["completed_at"][0]
+                call_report = selected_row["call_report"][0]
 
-def generate_random_dates(start_date, end_date, id_values):
-    date_range = pd.date_range(start_date, end_date).strftime('%m-%d-%Y')
-    return np.random.choice(date_range, size=len(id_values), replace=False)
+                with st.form("Edit"):
 
-## Generate 100 rows of data
-data = {'Issue': issue_list,
-        'Status': np.random.choice(['Open', 'In Progress', 'Closed'], size=100),
-        'Priority': np.random.choice(['High', 'Medium', 'Low'], size=100),
-        'Date Submitted': generate_random_dates(start_date, end_date, id_values)
-    }
-df = pd.DataFrame(data)
-df.insert(0, 'ID', id_values)
-df = df.sort_values(by=['Status', 'ID'], ascending=[False, False])
+                        st.title(location)
+                        st.write(datetime.strptime(created_at[0:19], "%Y-%m-%dT%H:%M:%S")+timedelta(hours=5, minutes=30))
+                        st.write(id)
 
-## Create DataFrame
-if 'df' not in st.session_state:
-    st.session_state.df = df
+                        problemInput = st.text_area("Problem Statement", value=problem)
+                        engineerInput = st.selectbox("Engineer", options=engineers, index=engineers.index(engineer))
 
-# Sort dataframe
-def sort_df():
-    st.session_state.df = edited_df.copy().sort_values(by=['Status', 'ID'], ascending=[False, False])
+                        placeholderImage1 = st.empty()
+                        placeholderImage2 = st.empty()
+                        placeholderImage3 = st.empty()
+
+                        completedInput = st.toggle("Completed", completed)
+                        col1Completed, col2Completed = st.columns([1,1])
+                        with col1Completed:
+                                completedDate = st.date_input("Completed At")
+                        with col2Completed:
+                                completedTime = st.time_input("Completed At")
 
 
+                        placeholderCallReport1 = st.empty()
+                        placeholderCallReport2 = st.empty()
+                        placeholderCallReport3 = st.empty()
 
-recent_ticket_number = int(max(st.session_state.df.ID).split('-')[1])
+                        col1Bottom, col2Bottom = st.columns([1,1])
+                        with col1Bottom:
+                                delete = st.form_submit_button("Delete Ticket", type="primary", use_container_width=True)
+                        with col2Bottom:
+                                save = st.form_submit_button("Save Changes", use_container_width=True)
+                
+                with placeholderImage1:
+                        newImageInput = st.file_uploader(label="Images", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
+                with placeholderImage2:
+                        imageInput = st.multiselect("Images", images+newImageInput, images+newImageInput)
+                with placeholderImage3:
+                        if imageInput != None:
+                                with st.container():
+                                        for i in imageInput:
+                                                if isinstance(i, str):
+                                                        data = conn.download("images" ,source_path=i, ttl=None)
+                                                        st.image(data[0])
+                                                else:
+                                                        st.image(i)
+                with placeholderCallReport1:
+                        newCallReportInput = st.file_uploader(label="Call Reports", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
+                with placeholderCallReport2:
+                        callReportInput = st.multiselect("Call Reports", call_report+newCallReportInput, call_report+newCallReportInput)
+                with placeholderCallReport3:
+                        if callReportInput != None:
+                                with st.container():
+                                        for i in callReportInput:
+                                                if isinstance(i, str):
+                                                        data = conn.download("images" ,source_path=i, ttl=None)
+                                                        st.image(data[0])
+                                                else:
+                                                        st.image(i)
 
-status_col = st.columns((3,1))
-with status_col[0]:
-  st.subheader('Support Ticket Status')
-with status_col[1]:
-  st.write(f'No. of tickets: `{len(st.session_state.df)}`')
+                if save:
+                        for i in imageInput:
+                                if not isinstance(i, str):
+                                        filename = "images/"+str(datetime.now())+i.__getattribute__("name")
+                                        conn.upload("images", "local",i , filename)
+                                        imageInput.append(filename)
+                                        imageInput.remove(i)
+                        for i in callReportInput:
+                                if not isinstance(i, str):
+                                        filename = "call_reports/"+str(datetime.now())+i.__getattribute__("name")
+                                        conn.upload("images", "local",i , filename)
+                                        callReportInput.append(filename)
+                                        callReportInput.remove(i)
+                
+                        execute_query(conn.table('Logs').update([{
+                                "problem":problemInput,
+                                "engineer":engineer,
+                                "image":imageInput,
+                                "completed":str(completedInput),
+                                "completed_at":str(datetime.combine(completedDate, completedTime)),
+                                "call_report":callReportInput,
+                        }]).eq("id", id), ttl='0')
+                        st.rerun()
+                
+                if delete:
+                        execute_query(conn.table('Logs').delete(count=None).eq("id", id), ttl='0')
+                        st.rerun()
 
-st.markdown('**Things to try:**')
-st.info('1️⃣ Update Ticket **Status** or **Priority** and see how plots are updated in real-time!')
-st.success('2️⃣ Change values in **Status** column from *"Open"* to either *"In Progress"* or *"Closed"*, then click on the **Sort DataFrame by the Status column** button to see the refreshed DataFrame with the sorted **Status** column.')
-
-edited_df = st.data_editor(st.session_state.df, use_container_width=True, hide_index=True, height=212,
-            column_config={'Status': st.column_config.SelectboxColumn(
-                                        'Status',
-                                        help='Ticket status',
-                                        options=[
-                                            'Open',
-                                            'In Progress',
-                                            'Closed'
-                                        ],
-                                        required=True,
-                                        ),
-                           'Priority': st.column_config.SelectboxColumn(
-                                       'Priority',
-                                        help='Priority',
-                                        options=[
-                                            'High',
-                                            'Medium',
-                                            'Low'
-                                        ],
-                                        required=True,
-                                        ),
-                         })
-st.button('🔄 Sort DataFrame by the Status column', on_click=sort_df)
-
-# Status plot
-st.subheader('Support Ticket Analytics')
-col = st.columns((1,3,1))
-
-with col[0]:
-  n_tickets_queue = len(st.session_state.df[st.session_state.df.Status=='Open'])
-  
-  st.metric(label='First response time (hr)', value=5.2, delta=-1.5)
-  st.metric(label='No. of tickets in the queue', value=n_tickets_queue, delta='')
-  st.metric(label='Avg. ticket resolution time (hr)', value=16, delta='')
-  
-  
-with col[1]:
-  status_plot = alt.Chart(edited_df).mark_bar().encode(
-      x='month(Date Submitted):O',
-      y='count():Q',
-      xOffset='Status:N',
-      color = 'Status:N'
-  ).properties(title='Ticket status in the past 6 months', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
-  st.altair_chart(status_plot, use_container_width=True, theme='streamlit')
-  
-with col[2]:
-  priority_plot = alt.Chart(edited_df).mark_arc().encode(
-                      theta="count():Q",
-                      color="Priority:N"
-                  ).properties(title='Current ticket priority', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
-  st.altair_chart(priority_plot, use_container_width=True, theme='streamlit')
+else:
+        st.write("No Records")  
