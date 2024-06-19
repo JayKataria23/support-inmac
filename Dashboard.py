@@ -14,7 +14,7 @@ conn = st.connection("supabase",type=SupabaseConnection)
 
 engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
-if df.count is not None:
+if df.count >= 1:
         df = pd.DataFrame(df.data)[["id", "created_at", "location", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
 
         event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
