@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import pandas as pd
 from st_supabase_connection import SupabaseConnection, execute_query
 
 
@@ -8,12 +9,15 @@ conn = st.connection("supabase",type=SupabaseConnection)
 st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-logo.png?w=721&ssl=1")
 st.title( 'Write a ticket')
 
+locations = list(pd.DataFrame(execute_query(conn.table("Locations").select("name", count="None"), ttl=None).data)["name"])
+engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
+
 with st.form('ticket'):
-    location = st.selectbox("Company - Branch*", ["TJSB bank - Yewatamal","TJSB bank - Solapur","TJSB bank - Akola",],  index=None)
+    location = st.selectbox("Company - Branch*", locations,  index=None)
     issue = st.text_area('Description of issue')
     priority = st.selectbox('Priority', ['High', 'Medium', 'Low'], index=2)
     image = st.file_uploader("Add Image", accept_multiple_files=True, type=['png', 'jpg', 'webp', 'jpeg'])
-    engineer = st.selectbox("Engineer", ["Irshad Sidique", "Shafiq Khan", "Ravi Patil", "Arun Nikade"], index=None)
+    engineer = st.selectbox("Engineer", engineers, index=None)
     submit = st.form_submit_button('Submit')
 
 
