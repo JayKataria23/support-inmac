@@ -14,7 +14,6 @@ conn = st.connection("supabase",type=SupabaseConnection)
 
 engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
-st.write(df)
 if df.count is not None:
         df = pd.DataFrame(df.data)[["id", "created_at", "location", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
 
