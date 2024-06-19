@@ -11,36 +11,13 @@ st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-log
 st.title( 'Support Ticket Workflow')
 
 conn = st.connection("supabase",type=SupabaseConnection)
-status_col = st.columns((3,1))
-with status_col[0]:
-  st.subheader('Support Ticket Status')
-with status_col[1]:
-  st.write(f'No. of tickets: `{len(st.session_state.df)}`')
 
-# Status plot
-st.subheader('Support Ticket Analytics')
-col = st.columns((1,3,1))
+df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
 
-with col[0]:
-  n_tickets_queue = len(st.session_state.df[st.session_state.df.Status=='Open'])
-  
-  st.metric(label='First response time (hr)', value=5.2, delta=-1.5)
-  st.metric(label='No. of tickets in the queue', value=n_tickets_queue, delta='')
-  st.metric(label='Avg. ticket resolution time (hr)', value=16, delta='')
-  
-  
-with col[1]:
-  status_plot = alt.Chart(edited_df).mark_bar().encode(
-      x='month(Date Submitted):O',
-      y='count():Q',
-      xOffset='Status:N',
-      color = 'Status:N'
-  ).properties(title='Ticket status in the past 6 months', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
-  st.altair_chart(status_plot, use_container_width=True, theme='streamlit')
-  
-with col[2]:
-  priority_plot = alt.Chart(edited_df).mark_arc().encode(
-                      theta="count():Q",
-                      color="Priority:N"
-                  ).properties(title='Current ticket priority', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
-  st.altair_chart(priority_plot, use_container_width=True, theme='streamlit')
+if len(df.data) > 0:
+  df = df.data
+  status_col = st.columns((3,1))
+  with status_col[0]:
+    st.subheader('Support Ticket Analysis')
+  with status_col[1]:
+    st.write(f'No. of tickets: `{len(df)}`')
