@@ -11,124 +11,36 @@ st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-log
 st.title( 'Support Ticket Workflow')
 
 conn = st.connection("supabase",type=SupabaseConnection)
+status_col = st.columns((3,1))
+with status_col[0]:
+  st.subheader('Support Ticket Status')
+with status_col[1]:
+  st.write(f'No. of tickets: `{len(st.session_state.df)}`')
 
-engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
-df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
-st.write(df)
-if df.count >= 1:
-        df = pd.DataFrame(df.data)[["id", "created_at", "location", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
+# Status plot
+st.subheader('Support Ticket Analytics')
+col = st.columns((1,3,1))
 
-        event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
-                on_select="rerun",
-                selection_mode="single-row",column_config={
-                        "id":"ID",
-                        "created_at":st.column_config.DatetimeColumn("Created At"),
-                        "location":"Company - Branch",
-                        "problem":"Problem Statement",
-                        "engineer":"Engineer Name",
-                        "image":st.column_config.ListColumn("Images"),
-                        "completed":st.column_config.CheckboxColumn("Completed"),
-                        "completed_at":st.column_config.DatetimeColumn("Completed At"),
-                        "call_report":st.column_config.ListColumn("Call Reports"),
-                })
-
-        if event.selection.rows:
-                selected_row = df.iloc[event.selection.rows].copy().reset_index()
-                id = selected_row["id"][0]
-                created_at = selected_row["created_at"][0]
-                location = selected_row["location"][0]
-                problem = selected_row["problem"][0]
-                engineer = selected_row["engineer"][0]
-                images = selected_row["image"][0]
-                completed = selected_row["completed"][0]
-                completed_at = selected_row["completed_at"][0]
-                call_report = selected_row["call_report"][0]
-
-                with st.form("Edit"):
-
-                        st.title(location)
-                        st.write(datetime.strptime(created_at[0:19], "%Y-%m-%dT%H:%M:%S")+timedelta(hours=5, minutes=30))
-                        st.write(id)
-
-                        problemInput = st.text_area("Problem Statement", value=problem)
-                        engineerInput = st.selectbox("Engineer", options=engineers, index=engineers.index(engineer))
-
-                        placeholderImage1 = st.empty()
-                        placeholderImage2 = st.empty()
-                        placeholderImage3 = st.empty()
-
-                        completedInput = st.toggle("Completed", completed)
-                        col1Completed, col2Completed = st.columns([1,1])
-                        with col1Completed:
-                                completedDate = st.date_input("Completed At")
-                        with col2Completed:
-                                completedTime = st.time_input("Completed At")
-
-
-                        placeholderCallReport1 = st.empty()
-                        placeholderCallReport2 = st.empty()
-                        placeholderCallReport3 = st.empty()
-
-                        col1Bottom, col2Bottom = st.columns([1,1])
-                        with col1Bottom:
-                                delete = st.form_submit_button("Delete Ticket", type="primary", use_container_width=True)
-                        with col2Bottom:
-                                save = st.form_submit_button("Save Changes", use_container_width=True)
-                
-                with placeholderImage1:
-                        newImageInput = st.file_uploader(label="Images", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
-                with placeholderImage2:
-                        imageInput = st.multiselect("Images", images+newImageInput, images+newImageInput)
-                with placeholderImage3:
-                        if imageInput != None:
-                                with st.container():
-                                        for i in imageInput:
-                                                if isinstance(i, str):
-                                                        data = conn.download("images" ,source_path=i, ttl=None)
-                                                        st.image(data[0])
-                                                else:
-                                                        st.image(i)
-                with placeholderCallReport1:
-                        newCallReportInput = st.file_uploader(label="Call Reports", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
-                with placeholderCallReport2:
-                        callReportInput = st.multiselect("Call Reports", call_report+newCallReportInput, call_report+newCallReportInput)
-                with placeholderCallReport3:
-                        if callReportInput != None:
-                                with st.container():
-                                        for i in callReportInput:
-                                                if isinstance(i, str):
-                                                        data = conn.download("images" ,source_path=i, ttl=None)
-                                                        st.image(data[0])
-                                                else:
-                                                        st.image(i)
-
-                if save:
-                        for i in imageInput:
-                                if not isinstance(i, str):
-                                        filename = "images/"+str(datetime.now())+i.__getattribute__("name")
-                                        conn.upload("images", "local",i , filename)
-                                        imageInput.append(filename)
-                                        imageInput.remove(i)
-                        for i in callReportInput:
-                                if not isinstance(i, str):
-                                        filename = "call_reports/"+str(datetime.now())+i.__getattribute__("name")
-                                        conn.upload("images", "local",i , filename)
-                                        callReportInput.append(filename)
-                                        callReportInput.remove(i)
-                
-                        execute_query(conn.table('Logs').update([{
-                                "problem":problemInput,
-                                "engineer":engineer,
-                                "image":imageInput,
-                                "completed":str(completedInput),
-                                "completed_at":str(datetime.combine(completedDate, completedTime)),
-                                "call_report":callReportInput,
-                        }]).eq("id", id), ttl='0')
-                        st.rerun()
-                
-                if delete:
-                        execute_query(conn.table('Logs').delete(count=None).eq("id", id), ttl='0')
-                        st.rerun()
-
-else:
-        st.write("No Records")  
+with col[0]:
+  n_tickets_queue = len(st.session_state.df[st.session_state.df.Status=='Open'])
+  
+  st.metric(label='First response time (hr)', value=5.2, delta=-1.5)
+  st.metric(label='No. of tickets in the queue', value=n_tickets_queue, delta='')
+  st.metric(label='Avg. ticket resolution time (hr)', value=16, delta='')
+  
+  
+with col[1]:
+  status_plot = alt.Chart(edited_df).mark_bar().encode(
+      x='month(Date Submitted):O',
+      y='count():Q',
+      xOffset='Status:N',
+      color = 'Status:N'
+  ).properties(title='Ticket status in the past 6 months', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
+  st.altair_chart(status_plot, use_container_width=True, theme='streamlit')
+  
+with col[2]:
+  priority_plot = alt.Chart(edited_df).mark_arc().encode(
+                      theta="count():Q",
+                      color="Priority:N"
+                  ).properties(title='Current ticket priority', height=300).configure_legend(orient='bottom', titleFontSize=14, labelFontSize=14, titlePadding=5)
+  st.altair_chart(priority_plot, use_container_width=True, theme='streamlit')
