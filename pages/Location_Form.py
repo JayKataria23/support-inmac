@@ -5,7 +5,7 @@ from st_supabase_connection import SupabaseConnection, execute_query
 conn = st.connection("supabase",type=SupabaseConnection)
 
 st.image("https://i0.wp.com/inmac.co.in/wp-content/uploads/2022/09/INMAC-web-logo.png?w=721&ssl=1")
-st.title( 'Add Engineer to DB')
+st.title( 'Add Location to DB')
 
 with st.form('location'):
     location = st.text_input('Company - Branch*', )
