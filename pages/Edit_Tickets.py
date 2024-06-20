@@ -14,8 +14,9 @@ conn = st.connection("supabase",type=SupabaseConnection)
 
 engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
+
 if len(df.data) > 0:
-        df = pd.DataFrame(df.data)[["id", "created_at", "location", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
+        df = pd.DataFrame(df.data)[["id", "created_at", "location", "priority", "problem", "engineer", "image", "completed", "completed_at", "call_report"]]
 
         event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
                 on_select="rerun",
@@ -23,6 +24,7 @@ if len(df.data) > 0:
                         "id":"ID",
                         "created_at":st.column_config.DatetimeColumn("Created At"),
                         "location":"Company - Branch",
+                        "priority":"Priority",
                         "problem":"Problem Statement",
                         "engineer":"Engineer Name",
                         "image":st.column_config.ListColumn("Images"),
@@ -36,6 +38,7 @@ if len(df.data) > 0:
                 id = selected_row["id"][0]
                 created_at = selected_row["created_at"][0]
                 location = selected_row["location"][0]
+                priority = selected_row["priority"][0]
                 problem = selected_row["problem"][0]
                 engineer = selected_row["engineer"][0]
                 images = selected_row["image"][0]
@@ -48,6 +51,8 @@ if len(df.data) > 0:
                         st.title(location)
                         st.write(datetime.strptime(created_at[0:19], "%Y-%m-%dT%H:%M:%S")+timedelta(hours=5, minutes=30))
                         st.write(id)
+
+                        priorityInput = st.selectbox("Priority", options=["Low", "Medium", "High"], index=["Low", "Medium", "High"].index(priority))
 
                         problemInput = st.text_area("Problem Statement", value=problem)
                         engineerInput = st.selectbox("Engineer", options=engineers, index=engineers.index(engineer))
@@ -116,8 +121,9 @@ if len(df.data) > 0:
                                         callReportInput.remove(i)
                 
                         execute_query(conn.table('Logs').update([{
+                                "priority":priorityInput,
                                 "problem":problemInput,
-                                "engineer":engineer,
+                                "engineer":engineerInput,
                                 "image":imageInput,
                                 "completed":str(completedInput),
                                 "completed_at":str(datetime.combine(completedDate, completedTime)),
@@ -130,4 +136,5 @@ if len(df.data) > 0:
                         st.rerun()
 
 else:
-        st.write("No Records")  
+        st.write("No Records")      
+
