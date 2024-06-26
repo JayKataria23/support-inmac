@@ -15,9 +15,47 @@ conn = st.connection("supabase",type=SupabaseConnection)
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
 
 if len(df.data) > 0:
-  df = df.data
+  df = pd.DataFrame(df.data)
   status_col = st.columns((3,1))
   with status_col[0]:
     st.subheader('Support Ticket Analysis')
   with status_col[1]:
     st.write(f'No. of tickets: `{len(df)}`')
+
+
+  col1, col2, col3 = st.columns(3)
+  num_open_tickets = len(df[df["completed"] == False]) 
+  num_completed_tickets = len(df[df["completed"] == True]) 
+  delta_open = len(df[df["created_at"] == datetime.today()])
+  delta_completed = len(df[df["completed_at"] == datetime.today()])
+  col1.metric(label="Number of open tickets", value=num_open_tickets, delta=delta_open)
+  col2.metric(label="Number of closed tickets", value=num_completed_tickets, delta=delta_completed)
+
+  st.write("### Tickets")
+  status_plot = (
+    alt.Chart(df[pd.to_datetime(df["created_at"]) > datetime.today()-timedelta(days=30)])
+    .mark_bar()
+    .encode(
+        x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
+        y="count():Q",
+        xOffset="priority:N",
+        color=alt.Color("priority:N", scale=alt.Scale(domain=['Low', 'Medium', 'High'], range=['#0096FF', '#ff7f0e', 'red']), legend=alt.Legend(title="Priority")),
+    )
+    .configure_legend(
+        orient="bottom", titleFontSize=14, labelFontSize=14, titlePadding=5
+    )
+  )
+  st.altair_chart(status_plot, use_container_width=True, theme="streamlit")
+  st.write("##### Current ticket priorities")
+  priority_plot = (
+      alt.Chart(df)
+      .mark_arc()
+      .encode(theta="count():Q",
+        color=alt.Color("priority:N", scale=alt.Scale(domain=['Low', 'Medium', 'High'], range=['#0096FF', '#ff7f0e', 'red']), legend=alt.Legend(title="Priority")),
+    )
+      .properties(height=300)
+      .configure_legend(
+          orient="bottom", titleFontSize=14, labelFontSize=14, titlePadding=5
+      )
+  )
+  st.altair_chart(priority_plot, use_container_width=True, theme="streamlit")
