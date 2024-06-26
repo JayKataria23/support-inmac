@@ -33,7 +33,7 @@ if len(df.data) > 0:
 
   st.write("### Tickets")
   status_plot = (
-    alt.Chart(df[pd.to_datetime(df["created_at"]) > datetime.today()-timedelta(days=30)])
+    alt.Chart(df[pd.to_datetime(df["created_at"], format='%Y-%m-%d %H:%M:%S') > datetime.today()-timedelta(days=30)])
     .mark_bar()
     .encode(
         x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
