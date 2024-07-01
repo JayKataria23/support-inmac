@@ -57,7 +57,7 @@ if len(df.data) > 0:
     alt.Chart(filtered_df)
     .mark_bar()
     .encode(
-        x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
+        x=alt.X("yearmonthdate(created_at)", axis=alt.Axis(title='Days')) ,
         y="count():Q",
         xOffset="priority:N",
         color=alt.Color("priority:N", scale=alt.Scale(domain=['Low', 'Medium', 'High'], range=['#0096FF', '#ff7f0e', 'red']), legend=alt.Legend(title="Priority")),
@@ -88,7 +88,7 @@ if len(df.data) > 0:
     alt.Chart(filtered_df2)
     .mark_bar()
     .encode(
-        x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
+        x=alt.X("yearmonthdate(created_at):O", axis=alt.Axis(title='Days')) ,
         y="count():Q",
         xOffset="comp:N",
         color=alt.Color("comp", scale=alt.Scale(domain=['Completed','Not Completed'], range=['#0096FF', 'red']), legend=alt.Legend(title="Completed")),
