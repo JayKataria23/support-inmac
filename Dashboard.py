@@ -30,10 +30,31 @@ if len(df.data) > 0:
   delta_completed = len(df[df["completed_at"] == datetime.today()])
   col1.metric(label="Number of open tickets", value=num_open_tickets, delta=delta_open)
   col2.metric(label="Number of closed tickets", value=num_completed_tickets, delta=delta_completed)
+  date_range = st.date_input("Date Range", value=[datetime.today()-timedelta(days=30), datetime.today()])
+  df['created_at']= pd.to_datetime(df['created_at'], format='ISO8601').dt.date
+  filtered_df = df
+
+  if len(date_range) == 2:
+    start_date = date_range[0]
+    end_date = date_range[1]
+    if start_date < end_date:
+      filtered_df = df.loc[(df['created_at'] > start_date) & (df['created_at'] <= end_date)]
+    else:
+      st.error("Error: Start date is not less than end date")
+  else:
+    st.error("Entor complete date range")
+
+  engineer = st.multiselect("Engineer", options=df["engineer"].unique())
+  if len(engineer)!=0:
+    filtered_df= filtered_df[filtered_df["engineer"].isin(engineer)]
+  
+  location = st.multiselect("Location", options=df["location"].unique())
+  if len(location)!=0:
+    filtered_df= filtered_df[filtered_df["location"].isin(location)]
 
   st.write("### Tickets")
   status_plot = (
-    alt.Chart(df[pd.to_datetime(df["created_at"], format='mixed') > datetime.today()-timedelta(days=30)])
+    alt.Chart(filtered_df)
     .mark_bar()
     .encode(
         x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
@@ -48,7 +69,7 @@ if len(df.data) > 0:
   st.altair_chart(status_plot, use_container_width=True, theme="streamlit")
   st.write("##### Current ticket priorities")
   priority_plot = (
-      alt.Chart(df)
+      alt.Chart(filtered_df)
       .mark_arc()
       .encode(theta="count():Q",
         color=alt.Color("priority:N", scale=alt.Scale(domain=['Low', 'Medium', 'High'], range=['#0096FF', '#ff7f0e', 'red']), legend=alt.Legend(title="Priority")),
@@ -59,3 +80,4 @@ if len(df.data) > 0:
       )
   )
   st.altair_chart(priority_plot, use_container_width=True, theme="streamlit")
+  st.write(filtered_df)
