@@ -149,10 +149,8 @@ if len(df.data) > 0:
                         else:
                                 completed_at=None
 
-                        st.write(activeTime)
                         if paused != pausedInput:
                                 activeTime.append(str(datetime.now()))
-                                st.write(activeTime)
 
                         
                         execute_query(conn.table('Logs').update([{
