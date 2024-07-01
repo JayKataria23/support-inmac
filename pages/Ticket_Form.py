@@ -15,6 +15,7 @@ engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name
 with st.form('ticket'):
     location = st.selectbox("Company - Branch*", locations,  index=None)
     issue = st.text_area('Description of issue')
+    serialNumbers = st.text_area('Serial Number\'s', placeholder="Seperate with comma")
     priority = st.selectbox('Priority', ['High', 'Medium', 'Low'], index=2)
     image = st.file_uploader("Add Image", accept_multiple_files=True, type=['png', 'jpg', 'webp', 'jpeg'])
     engineer = st.selectbox("Engineer", engineers, index=None)
@@ -23,6 +24,7 @@ with st.form('ticket'):
 
     if submit:
         if location != "" and issue != "" and priority != "":
+            serialNumbers = serialNumbers.replace(" ", "").split(",")
             images = []
             if image is not None:
                 for i in image:
@@ -37,6 +39,8 @@ with st.form('ticket'):
                 "problem":issue,
                 "engineer":engineer,
                 "image":images,
+                "serialNumbers":serialNumbers,
+                "activeTime":[str(datetime.datetime.now())],
                 "priority":priority
             }]), ttl='0')
             st.rerun()
