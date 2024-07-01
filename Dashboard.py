@@ -80,4 +80,35 @@ if len(df.data) > 0:
       )
   )
   st.altair_chart(priority_plot, use_container_width=True, theme="streamlit")
+
+  filtered_df2 = filtered_df
+  filtered_df2["comp"] = np.where(filtered_df2["completed"]==True, "Completed", "Not Completed")
+  st.write("### Tickets")
+  complete_plot2 = (
+    alt.Chart(filtered_df2)
+    .mark_bar()
+    .encode(
+        x=alt.X("date(created_at):O", axis=alt.Axis(title='Days')) ,
+        y="count():Q",
+        xOffset="comp:N",
+        color=alt.Color("comp", scale=alt.Scale(domain=['Completed','Not Completed'], range=['#0096FF', 'red']), legend=alt.Legend(title="Completed")),
+    )
+    .configure_legend(
+        orient="bottom", titleFontSize=14, labelFontSize=14, titlePadding=5
+    )
+  )
+  st.altair_chart(complete_plot2, use_container_width=True, theme="streamlit")
+  st.write("##### Current ticket progress")
+  complete_plot = (
+      alt.Chart(filtered_df2)
+      .mark_arc()
+      .encode(theta="count():Q",
+        color=alt.Color("comp:N", scale=alt.Scale(domain=['Completed','Not Completed'], range=['#0096FF', 'red']), legend=alt.Legend(title="Priority")),
+    )
+      .properties(height=300)
+      .configure_legend(
+          orient="bottom", titleFontSize=14, labelFontSize=14, titlePadding=5
+      )
+  )
+  st.altair_chart(complete_plot, use_container_width=True, theme="streamlit")
   st.write(filtered_df)
