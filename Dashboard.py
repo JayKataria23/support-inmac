@@ -111,4 +111,19 @@ if len(df.data) > 0:
       )
   )
   st.altair_chart(complete_plot, use_container_width=True, theme="streamlit")
-  st.write(filtered_df)
+  filtered_df3 = filtered_df[["id", "created_at", "location", "priority", "problem", "engineer", "image","completed", "completed_at", "call_report", "serialNumbers"]]
+  st.dataframe(filtered_df3, use_container_width=True, hide_index=True, height=400, 
+                on_select="rerun",
+                selection_mode="single-row",column_config={
+                        "id":"ID",
+                        "created_at":st.column_config.DatetimeColumn("Created At"),
+                        "location":"Company - Branch",
+                        "priority":"Priority",
+                        "problem":"Problem Statement",
+                        "engineer":"Engineer Name",
+                        "image":st.column_config.ListColumn("Images"),
+                        "completed":st.column_config.CheckboxColumn("Completed"),
+                        "completed_at":st.column_config.DatetimeColumn("Completed At"),
+                        "call_report":st.column_config.ListColumn("Call Reports"), 
+                        "serialNumbers":st.column_config.ListColumn("Serial Numbers"), 
+                })

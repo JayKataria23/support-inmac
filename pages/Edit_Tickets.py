@@ -30,7 +30,10 @@ if len(df.data) > 0:
                         "image":st.column_config.ListColumn("Images"),
                         "completed":st.column_config.CheckboxColumn("Completed"),
                         "completed_at":st.column_config.DatetimeColumn("Completed At"),
-                        "call_report":st.column_config.ListColumn("Call Reports"),
+                        "call_report":st.column_config.ListColumn("Call Reports"), 
+                        "serialNumbers":st.column_config.ListColumn("Serial Numbers"), 
+                        "activeTime":st.column_config.ListColumn("Active Time"), 
+
                 })
 
         if event.selection.rows:
