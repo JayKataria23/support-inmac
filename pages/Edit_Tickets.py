@@ -16,7 +16,7 @@ engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
 
 if len(df.data) > 0:
-        df = pd.DataFrame(df.data)[["id", "created_at", "location", "priority", "problem", "engineer", "image", "completed", "completed_at", "call_report", "serialNumbers"]]
+        df = pd.DataFrame(df.data)[["id", "created_at", "location", "priority", "problem", "engineer", "image", "completed", "completed_at", "call_report", "serialNumbers", "activeTime"]]
 
         event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
                 on_select="rerun",
@@ -46,7 +46,8 @@ if len(df.data) > 0:
                 completed = selected_row["completed"][0]
                 completed_at = selected_row["completed_at"][0]
                 call_report = selected_row["call_report"][0]
-                activeTime = selected_row["call_report"][0]
+                activeTime = selected_row["activeTime"][0]
+                paused = len(activeTime)%2==0
 
                 with st.form("Edit"):
 
@@ -59,6 +60,8 @@ if len(df.data) > 0:
                         problemInput = st.text_area("Problem Statement", value=problem)
                         serialNumbers = st.text_area('Serial Number\'s', placeholder="Seperate with comma", value=serialNumbers)
                         engineerInput = st.selectbox("Engineer", options=engineers, index=engineers.index(engineer))
+
+                        pausedInput = st.toggle("Pause", paused)
 
                         placeholderImage1 = st.empty()
                         placeholderImage2 = st.empty()
@@ -81,6 +84,7 @@ if len(df.data) > 0:
                                 delete = st.form_submit_button("Delete Ticket", type="primary", use_container_width=True)
                         with col2Bottom:
                                 save = st.form_submit_button("Save Changes", use_container_width=True)
+
 
                 with placeholderCompletedAt:
                         completedInput = st.toggle("Completed", completed)
@@ -145,6 +149,11 @@ if len(df.data) > 0:
                         else:
                                 completed_at=None
 
+                        st.write(activeTime)
+                        if paused != pausedInput:
+                                activeTime.append(str(datetime.now()))
+                                st.write(activeTime)
+
                         
                         execute_query(conn.table('Logs').update([{
                                 "priority":priorityInput,
@@ -155,6 +164,7 @@ if len(df.data) > 0:
                                 "completed":str(completedInput),
                                 "completed_at": completed_at,
                                 "call_report":callReportInput,
+                                "activeTime":activeTime
                         }]).eq("id", id), ttl='0')
                         st.rerun()
                 
