@@ -16,8 +16,8 @@ engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name
 df = execute_query(conn.table("Logs").select("*", count="None"), ttl="0")
 
 if len(df.data) > 0:
-        df = pd.DataFrame(df.data)[["id", "created_at", "location", "priority", "problem", "engineer", "image", "completed", "completed_at", "call_report", "serialNumbers", "activeTime"]]
-
+        df = pd.DataFrame(df.data)[["id", "created_at", "location", "priority", "problem", "engineer", "image", "completed", "completed_at", "call_report", "serialNumbers", "activeTime", "pause"]]
+        df = df.sort_values(by='id', ascending=False)
         event =st.dataframe(df, use_container_width=True, hide_index=True, height=400, 
                 on_select="rerun",
                 selection_mode="single-row",column_config={
@@ -33,6 +33,7 @@ if len(df.data) > 0:
                         "call_report":st.column_config.ListColumn("Call Reports"), 
                         "serialNumbers":st.column_config.ListColumn("Serial Numbers"), 
                         "activeTime":st.column_config.ListColumn("Active Time"), 
+                        "pause":"Paused"
 
                 })
 
@@ -50,7 +51,7 @@ if len(df.data) > 0:
                 completed_at = selected_row["completed_at"][0]
                 call_report = selected_row["call_report"][0]
                 activeTime = selected_row["activeTime"][0]
-                paused = len(activeTime)%2==0
+                paused = selected_row["pause"][0]
 
                 with st.form("Edit"):
 
@@ -165,7 +166,8 @@ if len(df.data) > 0:
                                 "completed":str(completedInput),
                                 "completed_at": completed_at,
                                 "call_report":callReportInput,
-                                "activeTime":activeTime
+                                "activeTime":activeTime,
+                                "pause":pausedInput
                         }]).eq("id", id), ttl='0')
                         st.rerun()
                 

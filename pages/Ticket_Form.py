@@ -41,7 +41,8 @@ with st.form('ticket'):
                 "image":images,
                 "serialNumbers":serialNumbers,
                 "activeTime":[str(datetime.datetime.now())],
-                "priority":priority
+                "priority":priority,
+                "pause":False
             }]), ttl='0')
             st.rerun()
         else:

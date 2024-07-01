@@ -22,7 +22,6 @@ if len(df.data) > 0:
   with status_col[1]:
     st.write(f'No. of tickets: `{len(df)}`')
 
-
   col1, col2, col3 = st.columns(3)
   num_open_tickets = len(df[df["completed"] == False]) 
   num_completed_tickets = len(df[df["completed"] == True]) 
@@ -43,6 +42,21 @@ if len(df.data) > 0:
       st.error("Error: Start date is not less than end date")
   else:
     st.error("Entor complete date range")
+
+  colA, colB = st.columns(2)
+  complete = colA.selectbox("Completed Status", options=["Completed", "Not Completed", "All"], index=2)
+  paused = colB.selectbox("Pause Status", options=["Paused", "Active", "All"], index=2)
+  if complete != "All":
+    if complete == "Completed":
+      filtered_df= filtered_df[filtered_df["completed"] == True]
+    else:
+      filtered_df= filtered_df[filtered_df["completed"] == False]
+  # if paused != "All":
+  #   if paused == "Paused":
+  #     filtered_df= filtered_df[len(filtered_df["activeTime"])%2 == 0]
+  #   else:
+  #     filtered_df= filtered_df[len(filtered_df["activeTime"])%2 == 1]
+
 
   engineer = st.multiselect("Engineer", options=df["engineer"].unique())
   if len(engineer)!=0:
