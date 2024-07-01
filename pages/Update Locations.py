@@ -21,7 +21,7 @@ if locationInput is not "" and locationInput is not None:
 
         col1Bottom, col2Bottom = st.columns([1,1])
         with col1Bottom:
-                delete = st.form_submit_button("Delete Ticket", type="primary", use_container_width=True)
+                delete = st.form_submit_button("Remove Location", type="primary", use_container_width=True)
         with col2Bottom:
                 save = st.form_submit_button("Save Changes", use_container_width=True)
 
