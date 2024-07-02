@@ -12,7 +12,7 @@ conn = st.connection("supabase",type=SupabaseConnection)
 locations = list(pd.DataFrame(execute_query(conn.table("Locations").select("name", count="None"), ttl=None).data)["name"])
 engineers = list(pd.DataFrame(execute_query(conn.table("Engineers").select("name", count="None"), ttl=None).data)["name"])
 
-with st.form('ticket'):
+with st.form('ticket', clear_on_submit=True):
     location = st.selectbox("Company - Branch*", locations,  index=None)
     issue = st.text_area('Description of issue')
     serialNumbers = st.text_area('Serial Number\'s', placeholder="Seperate with comma")
