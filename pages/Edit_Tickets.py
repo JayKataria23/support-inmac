@@ -109,6 +109,8 @@ if len(df.data) > 0:
 
                 with placeholderImage1:
                         newImageInput = st.file_uploader(label="Images", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
+                        if newImageInput is None:
+                                newImageInput = []
                 with placeholderImage2:
                         imageInput = st.multiselect("Images", images+newImageInput, images+newImageInput)
                 with placeholderImage3:
@@ -122,6 +124,8 @@ if len(df.data) > 0:
                                                         st.image(i)
                 with placeholderCallReport1:
                         newCallReportInput = st.file_uploader(label="Call Reports", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
+                        if newCallReportInput is None:
+                                newCallReportInput = []
                 with placeholderCallReport2:
                         callReportInput = st.multiselect("Call Reports", call_report+newCallReportInput, call_report+newCallReportInput)
                 with placeholderCallReport3:
