@@ -103,7 +103,7 @@ if len(df.data) > 0:
                                 with placeholderCompletedAt1:    
                                         completedDate = st.date_input("Completed At", value = datetime.strptime(completed_at[0:10], "%Y-%m-%d"))
                                 with placeholderCompletedAt2:
-                                        completedTime = st.time_input("Completed At", value = datetime.strptime(completed_at[12:20], "%H:%M:%S"))
+                                        completedTime = st.time_input("Completed At", value = datetime.strptime(completed_at[12:18], "%H:%M"))
 
 
 
