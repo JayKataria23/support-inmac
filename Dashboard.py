@@ -19,16 +19,11 @@ if len(df.data) > 0:
   status_col = st.columns((3,1))
   with status_col[0]:
     st.subheader('Support Ticket Analysis')
-  with status_col[1]:
-    st.write(f'No. of tickets: `{len(df)}`')
+  
 
-  col1, col2, col3 = st.columns(3)
-  num_open_tickets = len(df[df["completed"] == False]) 
-  num_completed_tickets = len(df[df["completed"] == True]) 
-  delta_open = len(df[df["created_at"] == datetime.today()])
-  delta_completed = len(df[df["completed_at"] == datetime.today()])
-  col1.metric(label="Number of open tickets", value=num_open_tickets, delta=delta_open)
-  col2.metric(label="Number of closed tickets", value=num_completed_tickets, delta=delta_completed)
+
+  placeholder = st.empty()
+  
   date_range = st.date_input("Date Range", value=[datetime.today()-timedelta(days=30), datetime.today()])
   df['created_at']= pd.to_datetime(df['created_at'], format='ISO8601').dt.date
   filtered_df = df
@@ -42,6 +37,17 @@ if len(df.data) > 0:
       st.error("Error: Start date is not less than end date")
   else:
     st.error("Entor complete date range")
+
+  with placeholder:
+    with status_col[1]:
+      st.write(f'No. of tickets: `{len(filtered_df)}`')
+    col1, col2, col3 = st.columns(3)
+    num_open_tickets = len(filtered_df[filtered_df["completed"] == False]) 
+    num_completed_tickets = len(filtered_df[filtered_df["completed"] == True]) 
+    delta_open = len(filtered_df[filtered_df["created_at"] == datetime.today()])
+    delta_completed = len(filtered_df[filtered_df["completed_at"] == datetime.today()])
+    col1.metric(label="Number of open tickets", value=num_open_tickets, delta=delta_open)
+    col2.metric(label="Number of closed tickets", value=num_completed_tickets, delta=delta_completed)
 
   colA, colB = st.columns(2)
   complete = colA.selectbox("Completed Status", options=["Completed", "Not Completed", "All"], index=2)
