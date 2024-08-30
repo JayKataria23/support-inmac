@@ -33,5 +33,12 @@ attendance_data["url"] = attendance_data.apply(get_urls, axis=1)
 event = st.dataframe(attendance_data[['date', "time", 'name', "address", "url"]].reset_index(drop=True), 
                      column_config={
                     "url": st.column_config.ImageColumn("Preview Image")
-                    })
+                    }, use_container_width=True, hide_index=True)
 
+
+df = attendance_data
+df['presence'] = 'P'
+pivot_df = df.pivot_table(index='name', columns=df['date'], values='presence', aggfunc='first')
+pivot_df = pivot_df.fillna('A')
+pivot_df = pivot_df.reset_index()
+st.dataframe(pivot_df)
