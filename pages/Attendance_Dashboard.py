@@ -26,7 +26,6 @@ engineer_data = pd.DataFrame(execute_query(
     .select("id", "name"), ttl=None).data)
 
 attendance_data = attendance_data.merge(engineer_data, left_on="engineer_id", right_on="id")
-location = geolocator.reverse("19.1616612, 72.8503479")
 attendance_data["address"] = attendance_data.apply(reverse_geocode, axis=1)
 attendance_data["url"] = attendance_data.apply(get_urls, axis=1)
 # attendance_data["image"] = attendance_data.apply(get_urls, axis=1)
