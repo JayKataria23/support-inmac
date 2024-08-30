@@ -2,6 +2,8 @@ import streamlit as st
 from st_supabase_connection import SupabaseConnection, execute_query
 import pandas as pd
 from geopy.geocoders import Nominatim
+from datetime import datetime, timedelta
+
 
 st.header("Attendance")
 
@@ -28,14 +30,28 @@ engineer_data = pd.DataFrame(execute_query(
 attendance_data = attendance_data.merge(engineer_data, left_on="engineer_id", right_on="id")
 attendance_data["address"] = attendance_data.apply(reverse_geocode, axis=1)
 attendance_data["url"] = attendance_data.apply(get_urls, axis=1)
-# attendance_data["image"] = attendance_data.apply(get_urls, axis=1)
-event = st.dataframe(attendance_data[['date', "time", 'name', "address", "url"]].reset_index(drop=True), 
+
+
+date_range = st.date_input("Date Range", value=[datetime.today()-timedelta(days=30), datetime.today()])
+attendance_data['date'] = pd.to_datetime(attendance_data['date'])
+filtered_df = attendance_data
+
+if len(date_range) == 2:
+    start_date = pd.to_datetime(date_range[0]) 
+    end_date = pd.to_datetime(date_range[1]) 
+    if start_date < end_date:
+        filtered_df = attendance_data.loc[(attendance_data['date'] > start_date) & (attendance_data['date'] <= end_date)]
+    else:
+        st.error("Error: Start date is not less than end date")
+else:
+    st.error("Entor complete date range")
+
+st.dataframe(filtered_df[['date', "time", 'name', "address", "url"]].reset_index(drop=True), 
                      column_config={
                     "url": st.column_config.ImageColumn("Preview Image")
                     }, use_container_width=True, hide_index=True)
 
-
-df = attendance_data
+df = filtered_df
 df['presence'] = 'P'
 pivot_df = df.pivot_table(index='name', columns=df['date'], values='presence', aggfunc='first')
 pivot_df = pivot_df.fillna('A')
