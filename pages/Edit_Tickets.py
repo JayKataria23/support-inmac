@@ -89,8 +89,9 @@ if len(df.data) > 0:
                                 delete = st.form_submit_button("Delete Ticket", type="primary", use_container_width=True)
                         with col2Bottom:
                                 save = st.form_submit_button("Save Changes", use_container_width=True)
-
-
+                if len(call_report)==1:
+                        file_name, mime, data = conn.download("images" ,source_path=call_report[0], ttl=None)
+                        dnld_btn = st.download_button("Download Call Report", data = data, file_name=file_name+".jpg", mime = mime)
                 with placeholderCompletedAt:
                         completedInput = st.toggle("Completed", completed)
 

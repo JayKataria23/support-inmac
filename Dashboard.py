@@ -73,6 +73,10 @@ if len(df.data) > 0:
   if len(location)!=0:
     filtered_df= filtered_df[filtered_df["location"].isin(location)]
 
+  company_name = st.text_input("Company Filter")
+  if company_name:
+    filtered_df= filtered_df[filtered_df["location"].str.contains(company_name, case=False, na=False)]
+
   st.write("### Tickets")
   status_plot = (
     alt.Chart(filtered_df)
